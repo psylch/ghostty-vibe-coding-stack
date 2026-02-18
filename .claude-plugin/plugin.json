@@ -1,0 +1,12 @@
+{
+  "name": "configuring-ghostty-vibe-stack",
+  "description": "Configures a complete Ghostty-based terminal AI coding environment with Fish, yazi, lazygit, Neovim (LazyVim), fzf, zoxide, atuin on macOS with Apple Silicon — with CJK font optimization for Chinese/Japanese/Korean users",
+  "version": "1.0.0",
+  "author": {
+    "name": "psylch"
+  },
+  "homepage": "https://github.com/psylch/ghostty-vibe-coding-stack",
+  "repository": "https://github.com/psylch/ghostty-vibe-coding-stack",
+  "license": "MIT",
+  "keywords": ["ghostty", "fish", "terminal", "vibe-coding", "cjk", "macos", "yazi", "lazygit", "neovim", "fzf", "zoxide", "atuin"]
+}

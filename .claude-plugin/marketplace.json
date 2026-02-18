@@ -1,0 +1,20 @@
+{
+  "name": "psylch-ghostty-vibe-coding-stack",
+  "owner": {
+    "name": "psylch"
+  },
+  "metadata": {
+    "description": "Ghostty-based vibe coding stack for macOS, with CJK font optimization"
+  },
+  "plugins": [
+    {
+      "name": "configuring-ghostty-vibe-stack",
+      "source": "./",
+      "description": "Configures Ghostty + Fish + yazi + lazygit + Neovim + fzf + zoxide + atuin for terminal-based AI coding workflows on macOS, with CJK font optimization for Chinese/Japanese/Korean users",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "tags": ["ghostty", "fish", "terminal", "vibe-coding", "cjk", "macos", "yazi", "lazygit"],
+      "homepage": "https://github.com/psylch/ghostty-vibe-coding-stack"
+    }
+  ]
+}
