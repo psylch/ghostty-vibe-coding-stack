@@ -5,124 +5,240 @@ description: "Configures a complete terminal-based AI coding environment centere
 
 # Ghostty Vibe Coding Stack
 
-A complete terminal-based AI coding environment for macOS (Apple Silicon). Replaces heavy IDEs with lightweight, composable tools optimized for Claude Code / AI-assisted development.
+A complete terminal-based AI coding environment for macOS (Apple Silicon). Replaces heavy IDEs with lightweight, composable tools for Claude Code / AI-assisted development.
 
-## Stack Overview
+## Setup Workflow
 
-| Tool | Purpose | Alias |
-|------|---------|-------|
-| **Ghostty** | GPU-accelerated terminal | - |
-| **Fish** | Shell with autosuggestions | - |
-| **Tide** | Fish prompt theme | - |
-| **yazi** | TUI file manager | `y`, `yy` |
-| **lazygit** | TUI Git client | `lg` |
-| **Neovim** | Editor (LazyVim distro) | `v` |
-| **fzf** | Fuzzy finder | `Ctrl+R` |
-| **zoxide** | Smart cd | `z` |
-| **atuin** | Enhanced shell history | `Ctrl+R` |
-| **fd** | Fast file finder | `fd` |
-| **ripgrep** | Fast code search | `rg` |
-| **bat** | Syntax-highlighted cat | `bat` |
-| **delta** | Better git diff pager | - |
+Follow these steps in order. Skip steps where the tool is already installed.
 
-## Installation
+Copy this checklist and track progress:
 
-Install all tools via Homebrew:
+```
+Setup Progress:
+- [ ] Step 1: Pre-flight checks
+- [ ] Step 2: Install Ghostty
+- [ ] Step 3: Install CLI tools
+- [ ] Step 4: Install fonts
+- [ ] Step 5: Configure Ghostty
+- [ ] Step 6: Configure Fish shell
+- [ ] Step 7: Install Fish plugins
+- [ ] Step 8: Configure lazygit
+- [ ] Step 9: Configure yazi
+- [ ] Step 10: Install Neovim + LazyVim
+- [ ] Step 11: Set Ghostty as default terminal
+- [ ] Step 12: Validate and verify
+```
+
+### Step 1: Pre-flight Checks
+
+Verify prerequisites before starting:
+
+```bash
+# Check macOS and architecture
+uname -m  # expect: arm64
+sw_vers --productVersion  # expect: 13.0+
+
+# Check Homebrew
+brew --version || echo "Homebrew not installed — install from https://brew.sh"
+```
+
+If Homebrew is missing, install it:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Check what is already installed to skip redundant steps:
+```bash
+for cmd in ghostty fish yazi lazygit nvim fzf zoxide atuin fd rg bat delta; do
+  printf "%-10s: " "$cmd"
+  which $cmd 2>/dev/null || echo "not installed"
+done
+```
+
+### Step 2: Install Ghostty
+
+Check if Ghostty is already installed:
+```bash
+ls /Applications/Ghostty.app 2>/dev/null && echo "Ghostty installed" || echo "Not installed"
+```
+
+If not installed:
+```bash
+brew install --cask ghostty
+```
+
+### Step 3: Install CLI Tools
+
+Install all tools in one command (already-installed tools are skipped automatically):
 
 ```bash
 brew install fish yazi lazygit neovim fzf zoxide atuin fd ripgrep bat git-delta
 ```
 
-Install fonts (CJK-optimized with Nerd Icons):
+### Step 4: Install Fonts
 
+Ask the user which font setup they prefer before installing:
+
+**Option A: CJK-optimized (recommended for Chinese/Japanese/Korean users)**
 ```bash
 brew install --cask font-maple-mono-nf-cn font-sarasa-gothic font-jetbrains-mono-nerd-font
 ```
 
-Install Fish plugins:
+**Option B: Latin-only (English-primary users)**
+```bash
+brew install --cask font-jetbrains-mono-nerd-font
+```
 
+### Step 5: Configure Ghostty
+
+Read the complete config template from [references/ghostty-config.md](references/ghostty-config.md).
+
+Before writing, ask the user about preferences:
+- **Theme**: Run `ghostty +list-themes` to show options. Popular: Monokai Vivid, Rose Pine, TokyoNight Storm, Catppuccin Mocha
+- **Transparency**: Whether to enable background opacity (some users prefer fully opaque)
+- **Font size**: Default 15, adjust for their display
+
+Write config to `~/.config/ghostty/config`:
+```bash
+mkdir -p ~/.config/ghostty
+```
+
+After writing, ALWAYS validate:
+```bash
+ghostty +validate-config
+```
+
+If validation shows theme errors, the theme name likely needs exact casing. Check with `ghostty +list-themes | grep -i <name>`.
+
+### Step 6: Configure Fish Shell
+
+Read the complete config template from [references/fish-config.md](references/fish-config.md).
+
+Register Fish as an allowed shell (requires sudo — inform the user):
+```bash
+grep -q "$(which fish)" /etc/shells || echo "$(which fish)" | sudo tee -a /etc/shells
+```
+
+Write config to `~/.config/fish/config.fish`:
+```bash
+mkdir -p ~/.config/fish/{completions,conf.d,functions}
+```
+
+Import existing shell history into atuin:
+```bash
+fish -c "atuin import auto"
+```
+
+### Step 7: Install Fish Plugins
+
+Check if Fisher (plugin manager) is installed:
+```bash
+fish -c "type fisher" 2>/dev/null || fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+```
+
+Install Tide prompt:
 ```bash
 fish -c "fisher install IlanCosman/tide@v6"
 ```
 
-Install LazyVim:
+### Step 8: Configure lazygit
 
+Read the complete config template from [references/lazygit-config.md](references/lazygit-config.md).
+
+The reference includes color themes for Monokai, TokyoNight, and Rose Pine. Match the lazygit theme to whichever Ghostty theme the user chose in Step 5.
+
+Write config to `~/.config/lazygit/config.yml`:
+```bash
+mkdir -p ~/.config/lazygit
+```
+
+### Step 9: Configure yazi
+
+Read the complete config template from [references/yazi-config.md](references/yazi-config.md).
+
+Write config to `~/.config/yazi/yazi.toml`:
+```bash
+mkdir -p ~/.config/yazi
+```
+
+### Step 10: Install Neovim + LazyVim
+
+Check if nvim config already exists:
+```bash
+ls ~/.config/nvim/init.lua 2>/dev/null && echo "Nvim config exists — skip or backup first" || echo "No config"
+```
+
+If no existing config:
 ```bash
 git clone https://github.com/LazyVim/starter ~/.config/nvim && rm -rf ~/.config/nvim/.git
 ```
 
-Register Fish as allowed shell:
+If config exists, ask the user whether to backup and replace or skip.
 
+Tell the user: first time opening `nvim`, LazyVim auto-installs all plugins — wait about 30 seconds.
+
+### Step 11: Set Ghostty as Default Terminal (Optional)
+
+Ask the user if they want Ghostty to replace their current default terminal in Finder's "Open in Terminal".
+
+If yes, compile and run the Swift helper:
 ```bash
-echo /opt/homebrew/bin/fish | sudo tee -a /etc/shells
-```
-
-Set Ghostty as default terminal (replaces Finder "Open in Terminal"):
-
-```bash
-cat << 'EOF' > /tmp/set_default_terminal.swift
+cat << 'SWIFT' > /tmp/set_default_terminal.swift
 import CoreServices
 let result = LSSetDefaultRoleHandlerForContentType(
     "public.unix-executable" as CFString, .shell,
     "com.mitchellh.ghostty" as CFString)
-print(result == 0 ? "Success" : "Failed: \(result)")
-EOF
+print(result == 0 ? "Success: Ghostty set as default terminal" : "Failed: \(result)")
+SWIFT
 swiftc /tmp/set_default_terminal.swift -o /tmp/set_default_terminal && /tmp/set_default_terminal
+rm -f /tmp/set_default_terminal.swift /tmp/set_default_terminal
 ```
 
-## Configuration
+### Step 12: Validate and Verify
 
-For complete config files, see:
+Run final verification:
+```bash
+echo "=== Tool Versions ==="
+for cmd in fish yazi lazygit nvim fzf zoxide atuin fd rg bat delta; do
+  printf "%-10s: " "$cmd"
+  $cmd --version 2>&1 | head -1
+done
 
-- **Ghostty**: [references/ghostty-config.md](references/ghostty-config.md)
-- **Fish**: [references/fish-config.md](references/fish-config.md)
-- **lazygit**: [references/lazygit-config.md](references/lazygit-config.md)
-- **yazi**: [references/yazi-config.md](references/yazi-config.md)
+echo ""
+echo "=== Ghostty Config ==="
+ghostty +validate-config 2>&1 || echo "Config OK (no output = no errors)"
 
-## Typical Workflow Layout
-
-Use Ghostty native splits (no tmux needed):
-
-```
-┌──────────────┬──────────────────────┐
-│  yazi (y)    │  Claude Code (cc)    │
-│  file tree   │  or Neovim (v)       │
-│  + preview   │                      │
-│              ├──────────────────────┤
-│              │  lazygit (lg)        │
-│              │  or dev server       │
-└──────────────┴──────────────────────┘
+echo ""
+echo "=== Fish Shell ==="
+fish -c "echo Fish is working"
 ```
 
-- `Cmd+D` split right → left: `y`, right: `cc`
-- `Cmd+Shift+D` split down on right pane → bottom: `lg`
-- `Cmd+Alt+Arrow` to navigate between panes
+Present the user with a summary of what was installed and configured, plus the quick reference below.
 
-## CJK Font Optimization
+## Quick Reference
 
-CJK users MUST configure font fallback chain to avoid rendering issues (oversized characters, misaligned spacing, sudden serif font fallback). Use fonts with built-in Nerd Icons and 1:2 halfwidth:fullwidth ratio.
+| Alias | Command |
+|-------|---------|
+| `y` | yazi (file manager) |
+| `yy` | yazi with cd-on-exit |
+| `lg` | lazygit |
+| `v` | nvim |
+| `cc` | claude |
+| `z <keyword>` | zoxide smart cd |
 
-Recommended font-family order:
+| Ghostty Shortcut | Action |
+|------------------|--------|
+| `Cmd+D` | Vertical split |
+| `Cmd+Shift+D` | Horizontal split |
+| `Cmd+Alt+Arrow` | Navigate splits |
+| `` Ctrl+` `` | Quick Terminal (global) |
 
-1. **Maple Mono NF CN** — primary, CJK + Nerd Icons integrated
-2. **Sarasa Term SC** — CJK fallback, perfect terminal metrics
-3. **JetBrainsMono Nerd Font** — Latin fallback
-4. **PingFang SC** — system fallback (macOS built-in)
-
-Enable `font-thicken = true` to prevent thin/blurry CJK rendering. Set `font-size` to 15-16 (slightly larger than default 14 for CJK readability).
-
-## Quick Terminal
-
-Ghostty supports a global dropdown terminal (Quake-style):
-
-```ini
-keybind = global:ctrl+grave_accent=toggle_quick_terminal
-quick-terminal-position = top
-quick-terminal-screen = main
-quick-terminal-animation-duration = 0.15
-```
-
-Press `` Ctrl+` `` from any app to toggle the terminal overlay.
+| Fish Key | Action |
+|----------|--------|
+| `Tab` | Accept autosuggestion |
+| `Alt+Tab` | Accept one word |
+| `→` | Completion menu |
+| `Ctrl+R` | History search (atuin) |
 
 ## Troubleshooting
 
@@ -145,3 +261,5 @@ Press `` Ctrl+` `` from any app to toggle the terminal overlay.
 - Set `adjust-cell-height = 20%`
 
 **List available fonts**: `ghostty +list-fonts`
+
+**List available themes**: `ghostty +list-themes`
