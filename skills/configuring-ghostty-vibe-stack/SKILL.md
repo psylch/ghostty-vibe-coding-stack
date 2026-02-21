@@ -7,7 +7,7 @@ description: "Configures a complete terminal-based AI coding environment centere
 
 A complete terminal-based AI coding environment for macOS (Apple Silicon). Replaces heavy IDEs with lightweight, composable tools for Claude Code / AI-assisted development.
 
-## Setup Workflow
+## How It Works
 
 Follow these steps in order. Skip steps where the tool is already installed.
 
