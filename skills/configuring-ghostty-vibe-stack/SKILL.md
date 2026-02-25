@@ -58,6 +58,15 @@ for cmd in ghostty fish yazi lazygit nvim fzf zoxide atuin fd rg bat delta; do
 done
 ```
 
+Use this table to resolve any missing items:
+
+| Check | Fix |
+|-------|-----|
+| Homebrew not installed | Run the install script above |
+| `ghostty` not found | Step 2: `brew install --cask ghostty` |
+| Any CLI tool not found | Step 3: `brew install <tool>` (all tools installed together) |
+| Architecture not arm64 | This skill targets Apple Silicon; Intel Macs may have compatibility issues with some tools |
+
 ### Step 2: Install Ghostty
 
 Check if Ghostty is already installed:
@@ -101,10 +110,16 @@ Before writing, ask the user about preferences:
 - **Transparency**: Whether to enable background opacity (some users prefer fully opaque)
 - **Font size**: Default 15, adjust for their display
 
-Write config to `~/.config/ghostty/config`:
+Check if config already exists before writing:
 ```bash
 mkdir -p ~/.config/ghostty
+ls ~/.config/ghostty/config 2>/dev/null && echo "Config exists" || echo "No config"
 ```
+
+If config exists: show current content, ask the user:
+- **(A) Back up and replace**: `cp ~/.config/ghostty/config ~/.config/ghostty/config.backup.$(date +%s)` then write new config
+- **(B) Skip**: keep existing config
+- **(C) Show diff and merge**: show differences, let user decide per-section
 
 After writing, ALWAYS validate:
 ```bash
@@ -117,15 +132,35 @@ If validation shows theme errors, the theme name likely needs exact casing. Chec
 
 Read the complete config template from [references/fish-config.md](references/fish-config.md).
 
-Register Fish as an allowed shell (requires sudo — inform the user):
+Ask the user if they want to register Fish as a login shell. Explain this means:
+- Fish will be available in `chsh` as a login shell option
+- It requires `sudo` to modify `/etc/shells`
+- Their current shell remains the default unless they explicitly run `chsh -s $(which fish)` later
+
+If the user agrees, register Fish:
 ```bash
 grep -q "$(which fish)" /etc/shells || echo "$(which fish)" | sudo tee -a /etc/shells
 ```
 
-Write config to `~/.config/fish/config.fish`:
+**Do NOT run `chsh` automatically.** Only mention it as an optional next step if the user asks to make Fish their default shell.
+
+Check if config already exists before writing:
 ```bash
 mkdir -p ~/.config/fish/{completions,conf.d,functions}
+ls ~/.config/fish/config.fish 2>/dev/null && echo "Config exists" || echo "No config"
 ```
+
+If config exists: show current content, ask the user:
+- **(A) Back up and replace**: `cp ~/.config/fish/config.fish ~/.config/fish/config.fish.backup.$(date +%s)` then write new config
+- **(B) Skip**: keep existing config
+- **(C) Show diff and merge**: show differences, merge section by section. **Idempotency check**: before adding init lines (`fzf --fish | source`, `zoxide init fish | source`, `atuin init fish | source`) or aliases, grep for them in the existing file to avoid duplicates.
+
+After writing the config, validate Fish can parse it:
+```bash
+fish -n ~/.config/fish/config.fish && echo "Fish config syntax OK" || echo "Fish config has syntax errors"
+```
+
+If syntax errors are found, show the error output and fix the config before proceeding.
 
 Import existing shell history into atuin:
 ```bash
@@ -150,33 +185,72 @@ Read the complete config template from [references/lazygit-config.md](references
 
 The reference includes color themes for Monokai, TokyoNight, and Rose Pine. Match the lazygit theme to whichever Ghostty theme the user chose in Step 5.
 
-Write config to `~/.config/lazygit/config.yml`:
+Check if config already exists before writing:
 ```bash
 mkdir -p ~/.config/lazygit
+ls ~/.config/lazygit/config.yml 2>/dev/null && echo "Config exists" || echo "No config"
+```
+
+If config exists: show current content, ask the user:
+- **(A) Back up and replace**: `cp ~/.config/lazygit/config.yml ~/.config/lazygit/config.yml.backup.$(date +%s)` then write new config
+- **(B) Skip**: keep existing config
+- **(C) Show diff and merge**: show differences, let user decide per-section
+
+After writing, validate the YAML is parseable by lazygit:
+```bash
+lazygit -c ~/.config/lazygit/config.yml --version && echo "lazygit config OK" || echo "lazygit config may have issues"
+```
+
+If lazygit is not yet available, validate YAML syntax with:
+```bash
+python3 -c "import yaml; yaml.safe_load(open('$HOME/.config/lazygit/config.yml'))" && echo "YAML syntax OK" || echo "YAML syntax error"
 ```
 
 ### Step 9: Configure yazi
 
 Read the complete config template from [references/yazi-config.md](references/yazi-config.md).
 
-Write config to `~/.config/yazi/yazi.toml`:
+Check if config already exists before writing:
 ```bash
 mkdir -p ~/.config/yazi
+ls ~/.config/yazi/yazi.toml 2>/dev/null && echo "Config exists" || echo "No config"
+```
+
+If config exists: show current content, ask the user:
+- **(A) Back up and replace**: `cp ~/.config/yazi/yazi.toml ~/.config/yazi/yazi.toml.backup.$(date +%s)` then write new config
+- **(B) Skip**: keep existing config
+- **(C) Show diff and merge**: show differences, let user decide per-section
+
+After writing, validate the TOML is parseable:
+```bash
+python3 -c "import tomllib; tomllib.load(open('$HOME/.config/yazi/yazi.toml', 'rb'))" && echo "yazi config OK" || echo "TOML syntax error"
 ```
 
 ### Step 10: Install Neovim + LazyVim
 
 Check if nvim config already exists:
 ```bash
-ls ~/.config/nvim/init.lua 2>/dev/null && echo "Nvim config exists — skip or backup first" || echo "No config"
+ls ~/.config/nvim/init.lua 2>/dev/null && echo "Nvim config exists" || echo "No config"
 ```
 
-If no existing config:
+If config exists, ask the user:
+- **(A) Back up and replace**: `cp -r ~/.config/nvim ~/.config/nvim.backup.$(date +%s)` then clone fresh
+- **(B) Skip**: keep existing Neovim config
+
+If no existing config (or user chose A), clone to a temp directory first so a failed clone does not destroy the existing config:
 ```bash
-git clone https://github.com/LazyVim/starter ~/.config/nvim && rm -rf ~/.config/nvim/.git
+NVIM_TMP=$(mktemp -d)
+git clone https://github.com/LazyVim/starter "$NVIM_TMP/nvim" && rm -rf "$NVIM_TMP/nvim/.git"
 ```
 
-If config exists, ask the user whether to backup and replace or skip.
+Only replace the config after a successful clone:
+```bash
+rm -rf ~/.config/nvim
+mv "$NVIM_TMP/nvim" ~/.config/nvim
+rm -rf "$NVIM_TMP"
+```
+
+If the clone fails, inform the user that their existing config (or backup) is untouched and suggest retrying when network is available.
 
 Tell the user: first time opening `nvim`, LazyVim auto-installs all plugins — wait about 30 seconds.
 
@@ -231,6 +305,20 @@ Present the user with a summary of what was installed and configured, plus the q
 | `Alt+Tab` | Accept one word |
 | `→` | Completion menu |
 | `Ctrl+R` | History search (atuin) |
+
+## Recovery / Rollback
+
+If new config breaks something, open **Terminal.app** (macOS built-in, always available) and run the appropriate fix:
+
+| Broken | Fix |
+|--------|-----|
+| Ghostty won't launch or renders wrong | `mv ~/.config/ghostty/config ~/.config/ghostty/config.broken` — Ghostty uses defaults on next launch |
+| Fish shell broken on startup | `mv ~/.config/fish/config.fish ~/.config/fish/config.fish.broken` — Fish loads without custom config |
+| Want to revert Fish as login shell | `chsh -s /bin/zsh` |
+| Want to remove Fish from /etc/shells | `sudo sed -i '' '\|/fish$|d' /etc/shells` |
+| lazygit or yazi broken | Delete the config file (`~/.config/lazygit/config.yml` or `~/.config/yazi/yazi.toml`) — tool reverts to defaults |
+| Neovim/LazyVim broken | `rm -rf ~/.config/nvim` — if you have a backup: `cp -r ~/.config/nvim.backup.<timestamp> ~/.config/nvim` |
+| Any config with `.backup.<timestamp>` | `cp <file>.backup.<timestamp> <file>` to restore the backed-up version |
 
 ## Troubleshooting
 
