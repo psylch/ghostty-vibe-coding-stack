@@ -3,6 +3,9 @@ name: configuring-ghostty-vibe-stack
 description: "Configures a complete terminal-based AI coding environment centered on Ghostty terminal with Fish shell, yazi, lazygit, Neovim (LazyVim), fzf, zoxide, atuin, and supporting tools. Includes CJK font optimization for Chinese/Japanese/Korean users on macOS with Apple Silicon. This skill should be used when setting up or modifying a Ghostty-based development environment, configuring terminal tools for vibe coding workflows, or troubleshooting Ghostty/Fish/yazi/lazygit issues."
 ---
 
+## Language
+**Match user's language**: Respond in the same language the user uses.
+
 # Ghostty Vibe Coding Stack
 
 A complete terminal-based AI coding environment for macOS (Apple Silicon). Replaces heavy IDEs with lightweight, composable tools for Claude Code / AI-assisted development.
@@ -181,18 +184,7 @@ Tell the user: first time opening `nvim`, LazyVim auto-installs all plugins — 
 
 Ask the user if they want Ghostty to replace their current default terminal in Finder's "Open in Terminal".
 
-If yes, compile and run the Swift helper:
-```bash
-cat << 'SWIFT' > /tmp/set_default_terminal.swift
-import CoreServices
-let result = LSSetDefaultRoleHandlerForContentType(
-    "public.unix-executable" as CFString, .shell,
-    "com.mitchellh.ghostty" as CFString)
-print(result == 0 ? "Success: Ghostty set as default terminal" : "Failed: \(result)")
-SWIFT
-swiftc /tmp/set_default_terminal.swift -o /tmp/set_default_terminal && /tmp/set_default_terminal
-rm -f /tmp/set_default_terminal.swift /tmp/set_default_terminal
-```
+If yes, read the Swift helper from [references/set-default-terminal.md](references/set-default-terminal.md) and run it.
 
 ### Step 12: Validate and Verify
 
